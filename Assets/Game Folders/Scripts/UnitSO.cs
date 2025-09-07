@@ -6,4 +6,6 @@ public class UnitSO : ScriptableObject
     public string unitName;
     public Sprite icon;
     public int cost;
+
+    public bool isLock;
 }

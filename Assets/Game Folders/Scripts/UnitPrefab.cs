@@ -4,8 +4,7 @@ using UnityEngine.AI;
 
 public class UnitPrefab : MonoBehaviour
 {
-    public int carryCapacity = 5;
-    public float gatherTime = 5f;
+    [SerializeField] private int carryCapacity = 2;
 
     private int carryingWood = 0;
     private bool isGathering = false;
@@ -30,7 +29,7 @@ public class UnitPrefab : MonoBehaviour
 
     private void Update()
     {
-        if (anim != null) 
+        if (anim != null && !isGathering)
         {
             anim.SetFloat("Walk", agent.velocity.magnitude);
         }
@@ -62,7 +61,7 @@ public class UnitPrefab : MonoBehaviour
 
     private void GoToHouse()
     {
-        if (house != null)
+        if (house != null && agent != null)
         {
             agent.isStopped = false;
             agent.SetDestination(house.position);
@@ -78,28 +77,49 @@ public class UnitPrefab : MonoBehaviour
 
         if (other.transform == house && carryingWood > 0)
         {
-            // Tambah resource
-            GameSetting.Instance.AddWood(carryingWood);
-            carryingWood = 0;
-
-            // Kembali ke tree lain kalau kayu habis
-            GoToTree();
+            StartCoroutine(DepositCoroutine());
         }
     }
 
     private IEnumerator GatherCoroutine()
     {
-        isGathering = true;
+        if (targetTree != null && targetTree.HasWood())
+        {
+            isGathering = true;
+            agent.isStopped = true;
+
+            transform.LookAt(targetTree.transform.position);
+
+            anim.SetBool("isWorking", true);
+
+            float gatherTime = targetTree.GetGatherTime();
+            yield return new WaitForSeconds(gatherTime);
+
+            int gathered = targetTree.GatherWood(carryCapacity);
+            carryingWood = gathered;
+
+            anim.SetBool("isWorking", false);
+
+            isGathering = false;
+            GoToHouse();
+        }
+    }
+
+    private IEnumerator DepositCoroutine()
+    {
+        // stop di depan rumah
         agent.isStopped = true;
+        anim.SetFloat("Walk", 0);
 
-        yield return new WaitForSeconds(gatherTime);
+        // deposit resource
+        GameSetting.Instance.AddWood(carryingWood);
+        carryingWood = 0;
 
-        int gathered = targetTree.GatherWood(carryCapacity);
-        carryingWood = gathered;
+        // tunggu 2 detik
+        yield return new WaitForSeconds(2f);
 
-        isGathering = false;
-
-        GoToHouse();
+        // cari pohon lagi
+        GoToTree();
     }
 
     private TreeResource FindNearestTree()
@@ -110,7 +130,7 @@ public class UnitPrefab : MonoBehaviour
 
         foreach (TreeResource t in trees)
         {
-            if (!t.HasWood()) continue; // skip pohon habis
+            if (!t.HasWood()) continue;
 
             float dist = Vector3.Distance(transform.position, t.transform.position);
             if (dist < minDist)

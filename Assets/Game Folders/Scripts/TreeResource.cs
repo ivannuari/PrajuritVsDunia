@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 
 public class TreeResource : MonoBehaviour
 {
-    public int woodAmount = 20;
+    [SerializeField, Range(1, 100)] private int woodAmount = 20;
+    [SerializeField] private float gatherTime = 10f;
 
     private void Start()
     {
@@ -18,6 +20,19 @@ public class TreeResource : MonoBehaviour
     {
         int gathered = Mathf.Min(amount, woodAmount);
         woodAmount -= gathered;
+
+        if (woodAmount <= 0)
+        {
+            // hapus dari daftar GameSetting dan destroy
+            GameSetting.Instance.RemoveTree(this);
+            Destroy(gameObject);
+        }
+
         return gathered;
+    }
+
+    public float GetGatherTime()
+    {
+        return gatherTime;
     }
 }

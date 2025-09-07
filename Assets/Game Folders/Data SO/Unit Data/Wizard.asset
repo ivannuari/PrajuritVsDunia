@@ -15,3 +15,4 @@ MonoBehaviour:
   unitName: Wizard
   icon: {fileID: 21300000, guid: 6385a258ea89d7646ba8f71675886dc6, type: 3}
   cost: 20
+  isLock: 1

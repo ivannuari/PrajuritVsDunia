@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitName: Cleric
   icon: {fileID: 21300000, guid: d919903fbb095e8458033d480b58046e, type: 3}
-  cost: 5
+  cost: 10
+  isLock: 1
