@@ -4,6 +4,7 @@ using UnityEngine;
 public class UnitSO : ScriptableObject
 {
     public string unitName;
+    public int unitId;
     public Sprite icon;
     public int cost;
 

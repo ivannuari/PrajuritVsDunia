@@ -22,8 +22,15 @@ public class CardPrefab : MonoBehaviour
         {
             spawnButton.onClick.AddListener(() =>
             {
-                GameSetting.Instance.SpawnUnit(data);
-                ProgressCard();
+                int totalCoin = GameSetting.Instance.GetCoin();
+                int totalReq = data.cost;
+                
+                if (totalCoin > totalReq)
+                {
+                    GameSetting.Instance.AddCoin(-totalReq);
+                    GameSetting.Instance.SpawnUnit(data);
+                    ProgressCard();
+                }
             });
         }
     }

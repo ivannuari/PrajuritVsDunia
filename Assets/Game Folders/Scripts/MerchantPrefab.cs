@@ -4,6 +4,7 @@ using System.Collections;
 
 public class MerchantPrefab : MonoBehaviour
 {
+    [SerializeField] private int woodPerCoin = 3; // berapa kayu untuk 1 coin
     private bool hasArrived = false;
 
     private Transform house;
@@ -66,11 +67,14 @@ public class MerchantPrefab : MonoBehaviour
         int wood = GameSetting.Instance.GetWood();
         if (wood > 0)
         {
-            int coinEarned = wood; // 1:1, bisa diubah
-            GameSetting.Instance.AddCoin(coinEarned);
-            GameSetting.Instance.SetWood(0);
+            // hitung coin berdasarkan rate
+            int coinEarned = wood / woodPerCoin;
+            int leftoverWood = wood % woodPerCoin;
 
-            Debug.Log($"Merchant menukar {wood} kayu → {coinEarned} coin");
+            GameSetting.Instance.AddCoin(coinEarned);
+            GameSetting.Instance.SetWood(leftoverWood); // sisa kayu yang tidak bisa ditukar
+
+            Debug.Log($"Merchant menukar {wood} kayu → {coinEarned} coin, sisa {leftoverWood} kayu");
         }
     }
 

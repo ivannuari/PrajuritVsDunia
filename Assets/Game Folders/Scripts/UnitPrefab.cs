@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 public class UnitPrefab : MonoBehaviour
 {
+    [SerializeField] private UnitName unitName = UnitName.Woodcutter;
     [SerializeField] private int carryCapacity = 2;
 
     private int carryingWood = 0;
@@ -24,7 +25,23 @@ public class UnitPrefab : MonoBehaviour
     {
         house = houseBase;
         targetTree = nearestTree;
-        GoToTree();
+
+        switch (unitName)
+        {
+            case UnitName.Woodcutter:
+                GoToTree();
+                break;
+            case UnitName.Archer:
+                break;
+            case UnitName.Cleric:
+                break;
+            case UnitName.Swordman:
+                break;
+            case UnitName.Spearman:
+                break;
+            case UnitName.Wizard:
+                break;
+        }
     }
 
     private void Update()
@@ -55,6 +72,7 @@ public class UnitPrefab : MonoBehaviour
             else
             {
                 Debug.Log($"{name} tidak ada pohon tersisa, berhenti bekerja.");
+                GoToHouse();
             }
         }
     }
@@ -83,8 +101,18 @@ public class UnitPrefab : MonoBehaviour
 
     private IEnumerator GatherCoroutine()
     {
-        if (targetTree != null && targetTree.HasWood())
+        if (targetTree != null)
         {
+            if (!targetTree.HasWood())
+            {
+                if (targetTree != null)
+                {
+                    targetTree.ReleaseReservation();
+                    targetTree = null;
+                    yield break;
+                }
+            }
+
             isGathering = true;
             agent.isStopped = true;
 

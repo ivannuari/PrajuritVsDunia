@@ -1,10 +1,11 @@
-using System;
 using UnityEngine;
 
 public class TreeResource : MonoBehaviour
 {
     [SerializeField, Range(1, 100)] private int woodAmount = 20;
     [SerializeField] private float gatherTime = 10f;
+
+    private bool isReserved = false;
 
     private void Start()
     {
@@ -23,7 +24,7 @@ public class TreeResource : MonoBehaviour
 
         if (woodAmount <= 0)
         {
-            // hapus dari daftar GameSetting dan destroy
+            ReleaseReservation();
             GameSetting.Instance.RemoveTree(this);
             Destroy(gameObject);
         }
@@ -34,5 +35,21 @@ public class TreeResource : MonoBehaviour
     public float GetGatherTime()
     {
         return gatherTime;
+    }
+
+    // Reservasi pohon
+    public bool IsReserved()
+    {
+        return isReserved;
+    }
+
+    public void Reserve()
+    {
+        isReserved = true;
+    }
+
+    public void ReleaseReservation()
+    {
+        isReserved = false;
     }
 }

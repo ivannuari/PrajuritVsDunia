@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: Archer
   m_EditorClassIdentifier: 
   unitName: Archer
+  unitId: 1
   icon: {fileID: 21300000, guid: dd0ad7196f367bb4d8425c0244e76ffc, type: 3}
   cost: 5
+  isLock: 0

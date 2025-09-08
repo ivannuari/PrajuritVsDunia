@@ -1,22 +1,30 @@
 using System;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public class GameSetting : MonoBehaviour
 {
     public static GameSetting Instance;
 
-    [SerializeField] private GameObject unitPrefab;
-    [SerializeField] private Transform houseTransform;
-
-    [SerializeField] private GameObject merchantPrefab;
-    public Transform spawnPoint; // posisi awal merchant (di luar layar)
-    public Transform exitPoint;  // posisi keluar merchant (di luar layar)
-
     [SerializeField] private int woodStorage;
     [SerializeField] private int coinAmount;
 
-    [SerializeField] private List<TreeResource> trees = new List<TreeResource>();
+    [Header("UNIT OBJECT")]
+    [SerializeField] private GameObject[] unitPrefab;
+    [SerializeField] private Transform houseTransform;
+
+    [Header("MERCHANT OBJECT")]
+    [SerializeField] private GameObject merchantPrefab;
+    [SerializeField] private Transform spawnPoint; // posisi awal merchant (di luar layar)
+    [SerializeField] private Transform exitPoint;  // posisi keluar merchant (di luar layar)
+
+    [Header("RESOURCES OBJECT")]
+    [SerializeField] private GameObject[] resourcesObject;
+    [SerializeField] private Transform treeContent;
+    [SerializeField] private NavMeshSurface groundSurface;
+
+    private List<TreeResource> trees = new List<TreeResource>();
 
     public event Action<UnitSO> OnUnitSpawned;
     public event Action<int> OnWoodStorageUpdated;
@@ -32,21 +40,65 @@ public class GameSetting : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        SpawnTrees();
+    }
+
+    private void SpawnTrees()
+    {
+        float radius = 50f;
+        float innerExclusion = 10f; // area kosong di tengah
+
+        for (int i = 0; i < 100; i++)
+        {
+            Vector3 pos;
+            do
+            {
+                pos = UnityEngine.Random.insideUnitSphere * radius;
+                pos.y = 0f;
+            }
+            while (Vector3.Distance(Vector3.zero, pos) < innerExclusion);
+
+            var prefab = resourcesObject[UnityEngine.Random.Range(0, resourcesObject.Length)];
+            var clone = Instantiate(prefab, pos, Quaternion.identity, treeContent);
+        }
+
+        // rebuild navmesh setelah semua pohon spawn
+        groundSurface.BuildNavMesh();
     }
 
     public void SpawnUnit(UnitSO data)
     {
-        var clone = Instantiate(unitPrefab);
+        var clone = Instantiate(unitPrefab[data.unitId]);
         clone.transform.position = houseTransform.position;
 
         if (trees.Count > 0)
         {
-            TreeResource nearestTree = trees[UnityEngine.Random.Range(0, trees.Count)];
-            float minDist = Vector3.Distance(clone.transform.position, nearestTree.transform.position);
+            TreeResource nearestTree = null;
+            float minDist = Mathf.Infinity;
 
-            UnitPrefab ai = clone.GetComponent<UnitPrefab>();
-            if (ai != null)
-                ai.Init(houseTransform, nearestTree);
+            foreach (var tree in trees)
+            {
+                if (tree == null) continue;
+                if (!tree.HasWood()) continue;
+                if (tree.IsReserved()) continue;
+
+                float dist = Vector3.Distance(clone.transform.position, tree.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestTree = tree;
+                }
+            }
+
+            if (nearestTree != null)
+            {
+                nearestTree.Reserve();
+
+                UnitPrefab ai = clone.GetComponent<UnitPrefab>();
+                if (ai != null)
+                    ai.Init(houseTransform, nearestTree);
+            }
         }
 
         OnUnitSpawned?.Invoke(data);
@@ -96,5 +148,10 @@ public class GameSetting : MonoBehaviour
     public void SetWood(int value)
     {
         woodStorage = value;
+    }
+
+    public int GetCoin()
+    {
+        return coinAmount;
     }
 }
